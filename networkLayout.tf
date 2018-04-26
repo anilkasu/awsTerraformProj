@@ -55,8 +55,24 @@ resource "aws_subnet" "Subnet-Private-1B" {
 	}
 }
 
+#output the IDs to the file
 output "vpc_id" {
 	value	= "${aws_vpc.VPC-Auto.id}"
+}
+
+output "subnetPrivate1A" {
+	value	= "${aws_subnet.Subnet-Private-1A.id}"
+}
+output "subnetPrivate1B" {
+        value   = "${aws_subnet.Subnet-Private-1B.id}"
+}
+
+output "subnetPublic1A" {
+        value   = "${aws_subnet.Subnet-Public-1A.id}"
+}
+
+output "subnetPublic1B" {
+        value   = "${aws_subnet.Subnet-Public-1B.id}"
 }
 
 #Common route table for public subnets
@@ -74,10 +90,10 @@ resource "aws_route_table" "RT_Public" {
 #Common route table for private subnets.
 resource "aws_route_table" "RT_Private" {
 	vpc_id	= "${aws_vpc.VPC-Auto.id}"
-/*	route {
-		nat_gateway_id	= "${aws_nat_gateway.NATGWay.id}"
+	route {
+		cidr_block = "0.0.0.0/0"
+		nat_gateway_id	= "${aws_nat_gateway.NatGateway1A.id}"
 	}
-*/
 	tags {
 		Name 	= "PrivateRT"
 	}
@@ -109,23 +125,26 @@ resource "aws_internet_gateway" "IGateWay" {
 	vpc_id	= "${aws_vpc.VPC-Auto.id}"
 	tags {
 		Name	= "InternetGateWay"
-	}	
+	}
 }
 
 
-/*
 #Elastic IP creation. This is used with NAT gateway so that the private subnet can access the internet.
-resource "aws_eip" "NAT1A" {
+resource "aws_eip" "natEIP" {
 	vpc	= true
-	
+	tags {
+	  Name = "EIP-NatGateway1A"
+	}
 }
 
 #Nat gateway creation
-resource "aws_nat_gateway" "EIP-1A" {
-	subnet_id	= "${aws_subnet.Subnet-Private-1A.id}"
-	allocation_id	= "{aws_eip.NAT1A.id}"
+resource "aws_nat_gateway" "NatGateway1A" {
+	subnet_id	= "${aws_subnet.Subnet-Public-1A.id}"
+	allocation_id	= "${aws_eip.natEIP.id}"
+	tags {
+	  Name = "NatGateway1A"
+	}
 }
-*/
 
 #Security group to provide access to the instances/appliations in the public network by exposing the specific ports.
 resource "aws_security_group" "publiSG" {
@@ -138,13 +157,19 @@ resource "aws_security_group" "publiSG" {
 		protocol	= "TCP"
 		cidr_blocks	= ["0.0.0.0/0"]
 	}
-	
+
 	ingress	{
 		from_port	= 8090
 		to_port		= 8091
 		protocol	= "TCP"
 		cidr_blocks	= ["0.0.0.0/0"]
 	}
+	ingress {
+                from_port       = 80
+                to_port         = 80
+                protocol        = "TCP"
+                cidr_blocks     = ["0.0.0.0/0"]
+        }
 	egress	{
 		from_port	= 0
 		to_port		= 0
@@ -176,4 +201,36 @@ resource "aws_security_group" "privateSG" {
 		protocol	= "-1"
 		cidr_blocks	= ["0.0.0.0/0"]
 	}
+}
+
+#output the security group IDs
+output "privateSGID" {
+	value	= "${aws_security_group.privateSG.id}"
+}
+
+output "publicSGID" {
+	value	= "${aws_security_group.publiSG.id}"
+}
+
+#Security group to provide access to the instances/appliations in the private network by exposing the specific ports.
+resource "aws_security_group" "albSG" {
+	name		= "SG-LoadBalancer"
+	description	= "Allows traffic from the internet to the load balancer on  only port 80"
+	vpc_id		= "${aws_vpc.VPC-Auto.id}"
+	ingress	{
+		from_port	= 80
+		to_port		= 80
+		protocol	= "TCP"
+		cidr_blocks	= ["0.0.0.0/0"]
+	}
+	egress {
+		from_port	= 0
+		to_port		= 0
+		protocol	= "-1"
+		cidr_blocks	= ["0.0.0.0/0"]
+	}
+}
+
+output "albSGID" {
+	value	= "${aws_security_group.albSG.id}"
 }

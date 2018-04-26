@@ -3,7 +3,7 @@ resource "aws_launch_configuration" "as_conf" {
 	instance_type	= "t2.micro"
 	image_id	= "ami-ab055fc4"
 	#image_id	= "ami-9f91caf0"
-	security_groups	= ["${aws_security_group.privateSG.id}"]
+	security_groups	= ["${var.privateSGID}"]
 	user_data	= <<-EOF
 		#!/bin/bash
 		export PATH="/usr/local/maven/bin:$PATH"
@@ -36,7 +36,7 @@ resource "aws_autoscaling_group" "as_group" {
 	desired_capacity	= 2
 	launch_configuration	= "${aws_launch_configuration.as_conf.name}"
 	#availability_zones	= ["${aws_subnet.Subnet-Private-1A.id}", "${aws_subnet.Subnet-Private-1B.id}"]
-	vpc_zone_identifier	= ["${aws_subnet.Subnet-Private-1A.id}", "${aws_subnet.Subnet-Private-1B.id}"]
+	vpc_zone_identifier	= ["${var.subnetPrivate1A}", "${var.subnetPrivate1B}"]
 	load_balancers		= ["${aws_elb.cl_elb.name}"]
 	tag {
 		key	= "Name"

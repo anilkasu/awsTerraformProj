@@ -1,6 +1,7 @@
 resource "aws_elb" "cl_elb" {
 	name		= "CL-lb"
-	subnets	= ["${aws_subnet.Subnet-Public-1B.id}", "${aws_subnet.Subnet-Public-1A.id}"]
+	#subnets	= ["${aws_subnet.Subnet-Public-1B.id}", "${aws_subnet.Subnet-Public-1A.id}"]
+	subnets	= ["${var.subnetPublic1B}", "${var.subnetPublic1A}"]
 	#availability_zones	= ["${aws_subnet.Subnet-Public-1B.availability_zone}", "${aws_subnet.Subnet-Public-1A.availability_zone}"]
 	listener	{
 		instance_port	= "8090"
@@ -21,7 +22,7 @@ resource "aws_elb" "cl_elb" {
 }
 
 resource "aws_security_group" "elbSG" {
-	vpc_id		= "${aws_vpc.VPC-Auto.id}"
+	vpc_id		= "${var.vpc_id}"
 	name		= "elb_secGroup"
 	description	= "Allows traffic from internet to the load balancer"
 	ingress {

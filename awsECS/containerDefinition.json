@@ -1,0 +1,20 @@
+[
+  {
+    "name": "restAPIContainer",
+    "image": "086877225461.dkr.ecr.ap-south-1.amazonaws.com/ubt1604_restapi",
+    "cpu": 512,
+    "memory": 512,
+    "memory_reservation": 254,
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 8090,
+        "hostPort": 8090
+      },
+      {
+        "containerPort": 8091,
+        "hostPort": 8091
+      }
+    ]
+  }
+]
